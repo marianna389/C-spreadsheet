@@ -55,7 +55,7 @@ void parse(FILE* file) {
                 formula = 1;
             }
             while (1) {
-                if (symbol == '"') {
+                if (symbol == '"') { 
                     char old_symbol = symbol;
                     symbol = fgetc(file);
                     if (symbol == '"') {
@@ -69,8 +69,12 @@ void parse(FILE* file) {
                     }
                 }
                 else {
+                    if (symbol == '\n' || symbol == '\r' || symbol == EOF) {
+                        ungetc(symbol, file);
+                        break;
+                    }
                     vector_push(string, symbol);
-                    symbol = fgetc(file);
+                    symbol = fgetc(file); 
                 }
             }
             vector_push(string, '\0');

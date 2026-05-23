@@ -7,6 +7,13 @@
 #include "parse.h"
 #include "calculate.h"
 #include "plugin.h"
+int check_cell(int row, int col) {
+    if (col < 0 || row < 0 || col >= main_table->cols_count || row >= main_table->rows_count)  {
+        fprintf(stderr, "Reference to non-existent cell\n");
+        return 1;
+    }
+    return 0;
+}
 double parse_expr(char** expr_ptr);
 double calculate_cell(int row, int col) {
     if (main_table->table[row].row[col]->type == EMPTY) {
@@ -117,10 +124,7 @@ double parse_atom(char** expr_ptr) {
             *expr_ptr = start_ptr;
             int col = parse_cell_adress_col(expr_ptr);
             int row = parse_cell_adress_row(expr_ptr);
-            if (col < 0 || row < 0 || col >= main_table->cols_count || row >= main_table->rows_count)  {
-                fprintf(stderr, "Reference to non-existent cell\n");
-                return 0;
-            }
+            if(check_cell(row, col)) return 0;
             return calculate_cell(row, col);
         }
     }
@@ -148,16 +152,18 @@ double FIND(char** expr_ptr) {
     (*expr_ptr)++;
     char* Str = parse_concat_arg(expr_ptr, str2);
     (*expr_ptr)++;
-    if (strcmp(Str, "CYCLE") == 0 || strcmp(substr, "CYCLE") == 0) {
-        return NAN;
-    }
-    char* strstr_ptr = strstr(Str, substr);
     double position;
-    if (strstr_ptr == NULL) {
-        position = -1;
+    if (strcmp(Str, "CYCLE") == 0 || strcmp(substr, "CYCLE") == 0) {
+        position = NAN;
     }
     else {
-        position = strstr_ptr - Str + 1;
+        char* strstr_ptr = strstr(Str, substr);
+        if (strstr_ptr == NULL) {
+            position = -1;
+        }
+        else {
+            position = strstr_ptr - Str + 1;
+        }
     }
     if (str1->str != NULL) {
         free(str1->str);
@@ -172,15 +178,25 @@ double FIND(char** expr_ptr) {
 double SUM(char** expr_ptr) {
     int col1 = parse_cell_adress_col(expr_ptr);
     int row1 = parse_cell_adress_row(expr_ptr);
-    if (col1 < 0 || row1 < 0 || col1 >= main_table->cols_count || row1 >= main_table->rows_count)  {
-        fprintf(stderr, "Reference to non-existent cell\n");
+    if(check_cell(row1, col1)) return 0;
+    if (**expr_ptr != ':') {
+        fprintf(stderr, "Error parsing range\n");
         return 0;
     }
     (*expr_ptr)++;
+    if (!isalpha(**expr_ptr)) {
+        fprintf(stderr, "Error parsing range\n");
+        return 0;
+    }
     int col2 = parse_cell_adress_col(expr_ptr);
     int row2 = parse_cell_adress_row(expr_ptr);
-    if (col2 < 0 || row2 < 0 || col2 >= main_table->cols_count || row2 >= main_table->rows_count)  {
-        fprintf(stderr, "Reference to non-existent cell\n");
+    if(check_cell(row2, col2)) return 0;
+    if (row1 > row2) {
+        fprintf(stderr, "Invalid range order\n");
+        return 0;
+    }
+    if (col1 > col2) {
+        fprintf(stderr, "Invalid range order\n");
         return 0;
     }
     double sum = 0;
@@ -202,15 +218,25 @@ double SUM(char** expr_ptr) {
 double MIN(char** expr_ptr) {
     int col1 = parse_cell_adress_col(expr_ptr);
     int row1 = parse_cell_adress_row(expr_ptr);
-    if (col1 < 0 || row1 < 0 || col1 >= main_table->cols_count || row1 >= main_table->rows_count)  {
-        fprintf(stderr, "Reference to non-existent cell\n");
+    if(check_cell(row1, col1)) return 0;
+    if (**expr_ptr != ':') {
+        fprintf(stderr, "Error parsing range\n");
         return 0;
     }
     (*expr_ptr)++;
+    if (!isalpha(**expr_ptr)) {
+        fprintf(stderr, "Error parsing range\n");
+        return 0;
+    }
     int col2 = parse_cell_adress_col(expr_ptr);
     int row2 = parse_cell_adress_row(expr_ptr);
-    if (col2 < 0 || row2 < 0 || col2 >= main_table->cols_count || row2 >= main_table->rows_count)  {
-        fprintf(stderr, "Reference to non-existent cell\n");
+    if(check_cell(row2, col2)) return 0;
+    if (row1 > row2) {
+        fprintf(stderr, "Invalid range order\n");
+        return 0;
+    }
+    if (col1 > col2) {
+        fprintf(stderr, "Invalid range order\n");
         return 0;
     }
     double min = INFINITY;
@@ -234,15 +260,25 @@ double MIN(char** expr_ptr) {
 double MAX(char** expr_ptr) {
     int col1 = parse_cell_adress_col(expr_ptr);
     int row1 = parse_cell_adress_row(expr_ptr);
-    if (col1 < 0 || row1 < 0 || col1 >= main_table->cols_count || row1 >= main_table->rows_count)  {
-        fprintf(stderr, "Reference to non-existent cell\n");
+    if(check_cell(row1, col1)) return 0;
+    if (**expr_ptr != ':') {
+        fprintf(stderr, "Error parsing range\n");
         return 0;
     }
     (*expr_ptr)++;
+    if (!isalpha(**expr_ptr)) {
+        fprintf(stderr, "Error parsing range\n");
+        return 0;
+    }
     int col2 = parse_cell_adress_col(expr_ptr);
     int row2 = parse_cell_adress_row(expr_ptr);
-    if (col2 < 0 || row2 < 0 || col2 >= main_table->cols_count || row2 >= main_table->rows_count)  {
-        fprintf(stderr, "Reference to non-existent cell\n");
+    if(check_cell(row2, col2)) return 0;
+    if (row1 > row2) {
+        fprintf(stderr, "Invalid range order\n");
+        return 0;
+    }
+    if (col1 > col2) {
+        fprintf(stderr, "Invalid range order\n");
         return 0;
     }
     double max = -INFINITY;
@@ -320,14 +356,15 @@ char* parse_concat_arg(char** expr_ptr, vector* str) {
     if (isalpha(**expr_ptr)) {
         col = parse_cell_adress_col(expr_ptr);
         row = parse_cell_adress_row(expr_ptr);
-        if (col < 0 || row < 0 || col >= main_table->cols_count || row >= main_table->rows_count)  {
-            fprintf(stderr, "Reference to non-existent cell\n");
-            return "";
-        }
+        if(check_cell(row, col)) return "";
     }
     else if (**expr_ptr == '"') {
         (*expr_ptr)++;
         while(**expr_ptr != '"') {
+            if (**expr_ptr == ',' || **expr_ptr == ')') {
+                (*expr_ptr)--;
+                break;
+            }
             vector_push(str, **expr_ptr);
             (*expr_ptr)++;
         }
