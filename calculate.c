@@ -263,13 +263,16 @@ double MAX(char** expr_ptr) {
     (*expr_ptr)++;
     return max;
 }
+void cycle(int row, int col) {
+    main_table->table[row].row[col]->calculated_string = malloc(6 * sizeof(char));
+    strcpy(main_table->table[row].row[col]->calculated_string, "CYCLE");
+}
 char* parse_concat_arg(char** expr_ptr, vector* str);
 void parse_expr_concat(char** expr_ptr, int row, int col);
 char* calculate_concat_cell(int row, int col) {
     if (main_table->table[row].row[col]->visited) {
         fprintf(stderr, "There is a cycle\n");
-        main_table->table[row].row[col]->calculated_string = malloc(6 * sizeof(char));
-        strcpy(main_table->table[row].row[col]->calculated_string, "CYCLE");
+        cycle(row, col);
         main_table->table[row].row[col]->calculated = 1;
         main_table->table[row].row[col]->visited = 0;
         return main_table->table[row].row[col]->calculated_string;
@@ -296,8 +299,7 @@ void parse_expr_concat(char** expr_ptr, int row, int col) {
     char* arg2 = parse_concat_arg(expr_ptr, str2);
     (*expr_ptr)++;
     if (strcmp(arg1, "CYCLE") == 0 || strcmp(arg2, "CYCLE") == 0) {
-        main_table->table[row].row[col]->calculated_string = malloc(6 * sizeof(char));
-        strcpy(main_table->table[row].row[col]->calculated_string, "CYCLE");
+        cycle(row, col);
     }
     else {
         main_table->table[row].row[col]->calculated_string = malloc((strlen(arg1) + strlen(arg2) + 1) * sizeof(char));
