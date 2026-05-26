@@ -175,30 +175,35 @@ double FIND(char** expr_ptr) {
     free(str2);
     return position;
 }
-double SUM(char** expr_ptr) {
-    int col1 = parse_cell_adress_col(expr_ptr);
-    int row1 = parse_cell_adress_row(expr_ptr);
-    if(check_cell(row1, col1)) return 0;
+int func_with_range(int* col1, int* row1, int* col2, int* row2, char** expr_ptr) {
+    *col1 = parse_cell_adress_col(expr_ptr);
+    *row1 = parse_cell_adress_row(expr_ptr);
+    if(check_cell(*row1, *col1)) return 1;
     if (**expr_ptr != ':') {
         fprintf(stderr, "Error parsing range\n");
-        return 0;
+        return 1;
     }
     (*expr_ptr)++;
     if (!isalpha(**expr_ptr)) {
         fprintf(stderr, "Error parsing range\n");
-        return 0;
+        return 1;
     }
-    int col2 = parse_cell_adress_col(expr_ptr);
-    int row2 = parse_cell_adress_row(expr_ptr);
-    if(check_cell(row2, col2)) return 0;
-    if (row1 > row2) {
+    *col2 = parse_cell_adress_col(expr_ptr);
+    *row2 = parse_cell_adress_row(expr_ptr);
+    if(check_cell(*row2, *col2)) return 1;
+    if ((*row1) > (*row2)) {
         fprintf(stderr, "Invalid range order\n");
-        return 0;
+        return 1;
     }
-    if (col1 > col2) {
+    if ((*col1) > (*col2)) {
         fprintf(stderr, "Invalid range order\n");
-        return 0;
+        return 1;
     }
+    return 0;
+}
+double SUM(char** expr_ptr) {
+    int col1, row1, col2, row2;
+    if (func_with_range(&col1, &row1, &col2, &row2, expr_ptr)) return 0;
     double sum = 0;
     for(int i = row1; i <= row2; i++) {
         for(int j = col1; j <= col2; j++) {
@@ -216,29 +221,8 @@ double SUM(char** expr_ptr) {
     return sum;
 }
 double MIN(char** expr_ptr) {
-    int col1 = parse_cell_adress_col(expr_ptr);
-    int row1 = parse_cell_adress_row(expr_ptr);
-    if(check_cell(row1, col1)) return 0;
-    if (**expr_ptr != ':') {
-        fprintf(stderr, "Error parsing range\n");
-        return 0;
-    }
-    (*expr_ptr)++;
-    if (!isalpha(**expr_ptr)) {
-        fprintf(stderr, "Error parsing range\n");
-        return 0;
-    }
-    int col2 = parse_cell_adress_col(expr_ptr);
-    int row2 = parse_cell_adress_row(expr_ptr);
-    if(check_cell(row2, col2)) return 0;
-    if (row1 > row2) {
-        fprintf(stderr, "Invalid range order\n");
-        return 0;
-    }
-    if (col1 > col2) {
-        fprintf(stderr, "Invalid range order\n");
-        return 0;
-    }
+    int col1, row1, col2, row2;
+    if (func_with_range(&col1, &row1, &col2, &row2, expr_ptr)) return 0;
     double min = INFINITY;
     for(int i = row1; i <= row2; i++) {
         for(int j = col1; j <= col2; j++) {
@@ -258,29 +242,8 @@ double MIN(char** expr_ptr) {
     return min;
 }
 double MAX(char** expr_ptr) {
-    int col1 = parse_cell_adress_col(expr_ptr);
-    int row1 = parse_cell_adress_row(expr_ptr);
-    if(check_cell(row1, col1)) return 0;
-    if (**expr_ptr != ':') {
-        fprintf(stderr, "Error parsing range\n");
-        return 0;
-    }
-    (*expr_ptr)++;
-    if (!isalpha(**expr_ptr)) {
-        fprintf(stderr, "Error parsing range\n");
-        return 0;
-    }
-    int col2 = parse_cell_adress_col(expr_ptr);
-    int row2 = parse_cell_adress_row(expr_ptr);
-    if(check_cell(row2, col2)) return 0;
-    if (row1 > row2) {
-        fprintf(stderr, "Invalid range order\n");
-        return 0;
-    }
-    if (col1 > col2) {
-        fprintf(stderr, "Invalid range order\n");
-        return 0;
-    }
+    int col1, row1, col2, row2;
+    if (func_with_range(&col1, &row1, &col2, &row2, expr_ptr)) return 0;
     double max = -INFINITY;
     for(int i = row1; i <= row2; i++) {
         for(int j = col1; j <= col2; j++) {

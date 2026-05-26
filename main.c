@@ -36,8 +36,6 @@ void help(char* name) {
     printf("SUM, MIN, MAX, FIND, CONCAT\n");
 }
 int main(int argc, char* argv[]) {
-    char input_file[50];
-    char output_file[50];
     if (argc == 1) {
         printf("Failed to start the program\n");
         printf("For more information use: %s --help\n", argv[0]);
@@ -62,24 +60,18 @@ int main(int argc, char* argv[]) {
         plugin_func = malloc(plugin_count * sizeof(func_t));
         handle = malloc(plugin_count * sizeof(void*));
         load_all_plugins();
-        strcpy(input_file, argv[argc - 2]);
-        strcpy(output_file, argv[argc - 1]);
     }
-    else if (argc == 3) {
-        strcpy(input_file, argv[1]);
-        strcpy(output_file, argv[2]);
-    }
-    else {
+    else if (argc != 3) {
         printf("Failed to start the program\n");
         printf("For more information use: %s --help\n", argv[0]);
         return 0;
     }
-    FILE* input = fopen(input_file, "rt");
+    FILE* input = fopen(argv[argc - 2], "rt");
     if (input == NULL) {
         fprintf(stderr, "Failed to open input file\n");
         return 0;
     }
-    FILE* output = fopen(output_file, "wt");
+    FILE* output = fopen(argv[argc - 1], "wt");
     create_table();
     parse(input);
     for(int i = 0; i < main_table->rows_count; i++) {
